@@ -17,6 +17,9 @@ namespace advent_of_code_2019
                 case 1:
                     RocketEquation.PrintTotalFuelRequiredForAllModules();
                     break;
+                case 2:
+                    IntcodeProgram.PrintAnswer();
+                    break;
                 default:
                     Console.WriteLine("Unexpected input failure");
                     break;
