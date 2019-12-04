@@ -24,6 +24,10 @@ namespace advent_of_code_2019
                     var crossedWires = new CrossedWires();
                     crossedWires.PrintAnswer();
                     break;
+                case 4:
+                    var secureContainer = new SecureContainer();
+                    secureContainer.PrintAnswer();
+                    break;
                 default:
                     Console.WriteLine("Unexpected input failure");
                     break;
