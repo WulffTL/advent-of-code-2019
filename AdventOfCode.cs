@@ -18,7 +18,7 @@ namespace advent_of_code_2019
                     RocketEquation.PrintTotalFuelRequiredForAllModules();
                     break;
                 case 2:
-                    var intcodeProgram = new IntcodeProgram(0);
+                    var intcodeProgram = new IntcodeProgram(1, "day-02-1202-program-alarm/input.txt");
                     intcodeProgram.PrintAnswer();
                     break;
                 case 3:
@@ -30,7 +30,7 @@ namespace advent_of_code_2019
                     secureContainer.PrintAnswer();
                     break;
                 case 5:
-                    var intcodeProgramTEST = new IntcodeProgram(5);
+                    var intcodeProgramTEST = new IntcodeProgram(5, "day-05-sunny-with-a-chance-of-asteroids/input.txt");
                     intcodeProgramTEST.Test();
                     break;
                 default:

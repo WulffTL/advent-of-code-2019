@@ -7,12 +7,15 @@ namespace advent_of_code_2019
     {
         int[] instructions;
         int input;
+        string inputFilePath;
 
-        public IntcodeProgram(int input)
+        public IntcodeProgram(int input, string inputFilePath)
         {
-            this.instructions = GetListFromInput();
+            this.inputFilePath = inputFilePath;
             this.input = input;
+            SetListFromInput();
         }
+
         public void PrintAnswer()
         {
            for(int i = 0; i < 100; i++)
@@ -26,7 +29,7 @@ namespace advent_of_code_2019
                         Console.WriteLine($"ANSWER: {i}, {j}");
                         return;
                     }
-                    GetListFromInput();
+                    SetListFromInput();
                }
            }
         }
@@ -201,16 +204,16 @@ namespace advent_of_code_2019
             return 3;
         }
 
-        private int[] GetListFromInput()
+        private void SetListFromInput()
         {
-            var text = System.IO.File.ReadAllText(@"day-05-sunny-with-a-chance-of-asteroids/input.txt");
+            var text = System.IO.File.ReadAllText(this.inputFilePath);
             var list = text.Split(",");
             var intList = new int[list.Length];
             for(int i = 0; i < intList.Length; i++)
             {
                 intList[i] = Int32.Parse(list[i]);
             }
-            return intList;  
+            this.instructions = intList;  
         }
     }
 }
