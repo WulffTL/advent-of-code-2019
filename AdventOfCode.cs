@@ -18,7 +18,8 @@ namespace advent_of_code_2019
                     RocketEquation.PrintTotalFuelRequiredForAllModules();
                     break;
                 case 2:
-                    IntcodeProgram.PrintAnswer();
+                    var intcodeProgram = new IntcodeProgram(0);
+                    intcodeProgram.PrintAnswer();
                     break;
                 case 3:
                     var crossedWires = new CrossedWires();
@@ -27,6 +28,10 @@ namespace advent_of_code_2019
                 case 4:
                     var secureContainer = new SecureContainer();
                     secureContainer.PrintAnswer();
+                    break;
+                case 5:
+                    var intcodeProgramTEST = new IntcodeProgram(5);
+                    intcodeProgramTEST.Test();
                     break;
                 default:
                     Console.WriteLine("Unexpected input failure");
