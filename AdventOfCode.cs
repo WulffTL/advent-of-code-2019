@@ -6,7 +6,7 @@ namespace advent_of_code_2019
     {
         static void Main(string[] args)
         {
-            var day = 1;
+            var day = 6;
             if(args.Length > 1)
             {
                 day = Int32.Parse(args[1]);
@@ -32,6 +32,10 @@ namespace advent_of_code_2019
                 case 5:
                     var intcodeProgramTEST = new IntcodeProgram(5, "day-05-sunny-with-a-chance-of-asteroids/input.txt");
                     intcodeProgramTEST.Test();
+                    break;
+                case 6:
+                    var orbits = new Orbits();
+                    orbits.PrintAnswer();
                     break;
                 default:
                     Console.WriteLine("Unexpected input failure");
