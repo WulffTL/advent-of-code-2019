@@ -6,7 +6,7 @@ namespace advent_of_code_2019
     {
         static void Main(string[] args)
         {
-            var day = 7;
+            var day = 8;
             if(args.Length > 1)
             {
                 day = Int32.Parse(args[1]);
@@ -40,6 +40,10 @@ namespace advent_of_code_2019
                 case 7:
                     var amplificationCircuit = new AmplificationCircuit();
                     amplificationCircuit.PrintAnswer();
+                    break;
+                case 8:
+                    var spaceImageFormat = new SpaceImageFormat("day-08-space-image-format/input.txt", 25, 6);
+                    spaceImageFormat.PrintAnswer2();
                     break;
                 default:
                     Console.WriteLine("Unexpected input failure");
