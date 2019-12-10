@@ -6,7 +6,7 @@ namespace advent_of_code_2019
     {
         static void Main(string[] args)
         {
-            var day = 8;
+            var day = 9;
             if(args.Length > 1)
             {
                 day = Int32.Parse(args[1]);
@@ -18,7 +18,7 @@ namespace advent_of_code_2019
                     RocketEquation.PrintTotalFuelRequiredForAllModules();
                     break;
                 case 2:
-                    var intcodeProgram = new IntcodeProgram(new int[]{1}, "day-02-1202-program-alarm/input.txt");
+                    var intcodeProgram = new IntcodeProgram(new long[]{1}, "day-02-1202-program-alarm/input.txt");
                     intcodeProgram.PrintAnswer();
                     break;
                 case 3:
@@ -30,7 +30,7 @@ namespace advent_of_code_2019
                     secureContainer.PrintAnswer();
                     break;
                 case 5:
-                    var intcodeProgramTEST = new IntcodeProgram(new int[]{5}, "day-05-sunny-with-a-chance-of-asteroids/input.txt");
+                    var intcodeProgramTEST = new IntcodeProgram(new long[]{5}, "day-05-sunny-with-a-chance-of-asteroids/input.txt");
                     Console.WriteLine(intcodeProgramTEST.Test());
                     break;
                 case 6:
@@ -44,6 +44,10 @@ namespace advent_of_code_2019
                 case 8:
                     var spaceImageFormat = new SpaceImageFormat("day-08-space-image-format/input.txt", 25, 6);
                     spaceImageFormat.PrintAnswer2();
+                    break;
+                case 9:
+                    var sensorBoost = new SensorBoost("day-09-sensor-boost/input.txt");
+                    sensorBoost.PrintAnswer1();
                     break;
                 default:
                     Console.WriteLine("Unexpected input failure");
