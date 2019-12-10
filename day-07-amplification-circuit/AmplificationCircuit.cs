@@ -13,7 +13,7 @@ namespace advent_of_code_2019
             this.amplifiers = new IntcodeProgram[5];
             for(int i = 0; i < 5; i++)
             {
-                this.amplifiers[i] = new IntcodeProgram(new int[]{1}, "day-07-amplification-circuit/input.txt");
+                this.amplifiers[i] = new IntcodeProgram(new long[]{1}, "day-07-amplification-circuit/input.txt");
             }
             this.phaseSettings = new HashSet<string>();
             this.Permute("98765", 0, 4);
@@ -21,25 +21,26 @@ namespace advent_of_code_2019
 
         public void PrintAnswer()
         {
-            var maxOutput = 0;
+            long maxOutput = 0;
             var maxPhaseSetting = "";
             foreach(var phaseSetting in this.phaseSettings)
             {
-                for(int i = 0; i < 5; i++)
+                for(long i = 0; i < 5; i++)
                 {
                     this.amplifiers[i].SetListFromInput();
                     this.amplifiers[i].CurrentInputIndex = 0;
                     this.amplifiers[i].IsHalted = false;
                     this.amplifiers[i].PointerPosition = 0;
                 }
-                var previousOutput = 0;
+                long previousOutput = 0;
                 while(!this.amplifiers[4].IsHalted)
                 {
                     for (int i = 0; i < 5; i++)
                     {
                         var ps = int.Parse(phaseSetting[i].ToString());
-                        this.amplifiers[i].Input = new int[] { ps, previousOutput };
-                        previousOutput = this.amplifiers[i].Test();
+                        this.amplifiers[i].Input = new long[] { ps, previousOutput };
+                        var output = this.amplifiers[i].Test();
+                        previousOutput = output[output.Count - 1];
                     }
                 }
                 if (previousOutput > maxOutput)

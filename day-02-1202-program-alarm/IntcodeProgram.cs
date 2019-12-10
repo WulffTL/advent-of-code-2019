@@ -5,37 +5,39 @@ namespace advent_of_code_2019
 {
     class IntcodeProgram
     {
-        int[] instructions;
-        int[] input;
-        int output;
+        long[] instructions;
+        long[] input;
+        List<long> output;
         string inputFilePath;
-        int currentInputIndex;
+        long currentInputIndex;
         bool isHalted;
 
         bool isPaused;
-        int pointerPosition;
-        public int[] Input { get => input; set => input = value; }
-        public int Output { get => output; set => output = value; }
-        public int CurrentInputIndex { get => currentInputIndex; set => currentInputIndex = value; }
+        long pointerPosition;
+        long relativeBase;
+        public long[] Input { get => input; set => input = value; }
+        public List<long> Output { get => output; set => output = value; }
+        public long CurrentInputIndex { get => currentInputIndex; set => currentInputIndex = value; }
         public bool IsHalted { get => isHalted; set => isHalted = value; }
-        public int PointerPosition { get => pointerPosition; set => pointerPosition = value; }
+        public long PointerPosition { get => pointerPosition; set => pointerPosition = value; }
 
-        public IntcodeProgram(int[] input, string inputFilePath)
+        public IntcodeProgram(long[] input, string inputFilePath)
         {
             this.inputFilePath = inputFilePath;
             this.Input = input;
             this.CurrentInputIndex = 0;
-            this.Output = 0;
+            this.Output = new List<long>();
             this.IsHalted = false;
-            this.PointerPosition = 0;
+            this.pointerPosition = 0;
+            this.relativeBase = 0;
             SetListFromInput();
         }
 
         public void PrintAnswer()
         {
-           for(int i = 0; i < 100; i++)
+           for(long i = 0; i < 100; i++)
            {
-               for(int j = 0; j < 100; j++)
+               for(long j = 0; j < 100; j++)
                {
                     Alter1202ProgramAlaram(i, j);
                     PerformIntCodes();
@@ -49,12 +51,18 @@ namespace advent_of_code_2019
            }
         }
 
-        public int Test()
+        public List<long> Test()
         {
             PerformIntCodes();
             return this.Output;
         }
-        private void Alter1202ProgramAlaram(int val1, int val2)
+
+        public List<long> Run()
+        {
+            PerformIntCodesUntilHalt();
+            return this.Output;
+        }
+        private void Alter1202ProgramAlaram(long val1, long val2)
         {
             this.instructions[1] = val1;
             this.instructions[2] = val2;
@@ -66,13 +74,22 @@ namespace advent_of_code_2019
             while (!this.isPaused && !this.isHalted)
             {
                 var pointerMovementlength = PerformOperation();
-                this.PointerPosition += pointerMovementlength + 1;
+                this.pointerPosition += pointerMovementlength + 1;
             }
         }
 
-        private int PerformOperation()
+        private void PerformIntCodesUntilHalt()
         {
-            var optCode = this.instructions[this.PointerPosition];
+            while (!this.isHalted)
+            {
+                var pointerMovementlength = PerformOperation();
+                this.pointerPosition += pointerMovementlength + 1;
+            }
+        }
+
+        private long PerformOperation()
+        {
+            var optCode = this.instructions[this.pointerPosition];
             var operation = GetOperation(optCode);
             var modes = GetModes(optCode);
 
@@ -83,7 +100,7 @@ namespace advent_of_code_2019
                 case 2:
                     return Product(modes);
                 case 3:
-                    return PlaceInput();
+                    return PlaceInput(modes);
                 case 4:
                     return SetOutput(modes);
                 case 5:
@@ -94,6 +111,8 @@ namespace advent_of_code_2019
                     return IsLessThan(modes);
                 case 8:
                     return IsEquals(modes);
+                case 9:
+                    return AdjustRelativeBase(modes);
                 case 99:
                     this.IsHalted = true;
                     return 0;
@@ -102,92 +121,123 @@ namespace advent_of_code_2019
             }
         }
 
-        private int[] GetModes(int optCode)
+        private Mode[] GetModes(long optCode)
         {
-            int[] modes = new int[3];
+            Mode[] modes = new Mode[3];
             optCode /= 100;
-            int i = 0;
+            long i = 0;
             while(optCode > 0)
             {
-                modes[i] = optCode % 10;
+                modes[i] = (Mode)(optCode % 10);
                 optCode /= 10;
                 i++;
             }
             return modes;
         }
 
-        private int GetOperation(int optCode)
+        private long GetOperation(long optCode)
         {
             return optCode % 100;
         }
 
-        private int JumpIfTrue(int[] modes)
+        private long GetFactor(Mode mode, long param)
         {
-            var firstParam = this.instructions[this.PointerPosition + 1];
-            var secondParam = this.instructions[this.PointerPosition + 2];
+            switch(mode)
+            {
+                case Mode.Position:
+                    return this.instructions[param];
+                case Mode.Immediate:
+                    return param;
+                case Mode.Relative:
+                    return this.instructions[this.relativeBase + param];
+                default:
+                    return -1;
+            }
+        }
 
-            var factor1 = modes[0] == 0 ? this.instructions[firstParam] : firstParam;
-            var factor2 = modes[1] == 0 ? this.instructions[secondParam] : secondParam;
+        private long GetAddress(Mode mode, long param)
+        {
+            if(mode == Mode.Position)
+            {
+                return param;
+            }
+            if(mode == Mode.Relative)
+            {
+                return param + this.relativeBase;
+            }
+            return -1;
+        }
+
+        private long JumpIfTrue(Mode[] modes)
+        {
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var secondParam = this.instructions[this.pointerPosition + 2];
+
+            var factor1 = GetFactor(modes[0], firstParam);
+            var factor2 = GetFactor(modes[1], secondParam);
 
             if (factor1 != 0)
             {
-                return factor2 - this.PointerPosition - 1;
+                return factor2 - this.pointerPosition - 1;
             }
             return 2;
         }
 
-        private int JumpIfFalse(int[] modes)
+        private long JumpIfFalse(Mode[] modes)
         {
-            var firstParam = this.instructions[this.PointerPosition + 1];
-            var secondParam = this.instructions[this.PointerPosition + 2];
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var secondParam = this.instructions[this.pointerPosition + 2];
 
-            var factor1 = modes[0] == 0 ? this.instructions[firstParam] : firstParam;
-            var factor2 = modes[1] == 0 ? this.instructions[secondParam] : secondParam;
+            var factor1 = GetFactor(modes[0], firstParam);
+            var factor2 = GetFactor(modes[1], secondParam);
 
             if (factor1 == 0)
             {
-                return factor2 - this.PointerPosition - 1;
+                return factor2 - this.pointerPosition - 1;
             }
             return 2;
         }
 
-        private int IsLessThan(int[] modes)
+        private long IsLessThan(Mode[] modes)
         {
-            var firstParam = this.instructions[this.PointerPosition + 1];
-            var secondParam = this.instructions[this.PointerPosition + 2];
-            var thirdParam = this.instructions[this.PointerPosition + 3];
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var secondParam = this.instructions[this.pointerPosition + 2];
+            var thirdParam = this.instructions[this.pointerPosition + 3];
 
-            var factor1 = modes[0] == 0 ? this.instructions[firstParam] : firstParam;
-            var factor2 = modes[1] == 0 ? this.instructions[secondParam] : secondParam;
-            this.instructions[thirdParam] = factor1 < factor2 ? 1 : 0;
+            var factor1 = GetFactor(modes[0], firstParam);
+            var factor2 = GetFactor(modes[1], secondParam);
+            var write = GetAddress(modes[2], thirdParam);
+            this.instructions[write] = factor1 < factor2 ? 1 : 0;
             return 3;
         }
 
-        private int IsEquals(int[] modes)
+        private long IsEquals(Mode[] modes)
         {
-            var firstParam = this.instructions[this.PointerPosition + 1];
-            var secondParam = this.instructions[this.PointerPosition + 2];
-            var thirdParam = this.instructions[this.PointerPosition + 3];
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var secondParam = this.instructions[this.pointerPosition + 2];
+            var thirdParam = this.instructions[this.pointerPosition + 3];
 
-            var factor1 = modes[0] == 0 ? this.instructions[firstParam] : firstParam;
-            var factor2 = modes[1] == 0 ? this.instructions[secondParam] : secondParam;
-            this.instructions[thirdParam] = factor1 == factor2 ? 1 : 0;
+            var factor1 = GetFactor(modes[0], firstParam);
+            var factor2 = GetFactor(modes[1], secondParam);
+            var write = GetAddress(modes[2], thirdParam);
+            this.instructions[write] = factor1 == factor2 ? 1 : 0;
             return 3;
         }
 
-        private int SetOutput(int[] modes)
+        private long SetOutput(Mode[] modes)
         {
-            var outputIndex = this.instructions[this.PointerPosition + 1];
-            var factor1 = modes[0] == 0 ? this.instructions[outputIndex] : outputIndex;
-            this.Output = factor1;
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var address = GetFactor(modes[0], firstParam);
+            this.Output.Add(address);
             this.isPaused = true;
             return 1;
         }
 
-        private int PlaceInput()
+        private long PlaceInput(Mode[] modes)
         {
-            var newIndex = this.instructions[this.PointerPosition + 1];
-            this.instructions[newIndex] = this.Input[this.CurrentInputIndex];
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var factor1 = GetAddress(modes[0], firstParam);
+            this.instructions[factor1] = this.Input[this.CurrentInputIndex];
             if(this.CurrentInputIndex < this.input.Length - 1)
             {
                 this.CurrentInputIndex++;
@@ -195,28 +245,38 @@ namespace advent_of_code_2019
             return 1;
         }
 
-        private int Add(int[] modes)
+        private long AdjustRelativeBase(Mode[] modes)
         {
-            var summandIndex1 = this.instructions[this.PointerPosition + 1];
-            var summandIndex2 = this.instructions[this.PointerPosition + 2];
-            var resultIndex = this.instructions[this.PointerPosition + 3];
+            var firstParam = this.instructions[this.pointerPosition + 1];
+            var factor1 = GetFactor(modes[0], firstParam);
+            this.relativeBase += factor1;
+            return 1;
+        }
 
-            var summand1 = modes[0] == 0 ? this.instructions[summandIndex1] : summandIndex1;
-            var summand2 = modes[1] == 0 ? this.instructions[summandIndex2] : summandIndex2;
-            this.instructions[resultIndex] = summand1 + summand2;
+        private long Add(Mode[] modes)
+        {
+            var summandIndex1 = this.instructions[this.pointerPosition + 1];
+            var summandIndex2 = this.instructions[this.pointerPosition + 2];
+            var resultIndex = this.instructions[this.pointerPosition + 3];
+
+            var summand1 = GetFactor(modes[0], summandIndex1);
+            var summand2 = GetFactor(modes[1], summandIndex2);
+            var write = GetAddress(modes[2], resultIndex);
+            this.instructions[write] = summand1 + summand2;
 
             return 3;
         }
 
-        private int Product(int[] modes)
+        private long Product(Mode[] modes)
         {
-            var factorIndex1 = this.instructions[this.PointerPosition + 1];
-            var factorIndex2 = this.instructions[this.PointerPosition + 2];
-            var resultIndex = this.instructions[this.PointerPosition + 3];
+            var factorIndex1 = this.instructions[this.pointerPosition + 1];
+            var factorIndex2 = this.instructions[this.pointerPosition + 2];
+            var resultIndex = this.instructions[this.pointerPosition + 3];
 
-            var factor1 = modes[0] == 0 ? this.instructions[factorIndex1] : factorIndex1;
-            var factor2 = modes[1] == 0 ? this.instructions[factorIndex2] : factorIndex2;
-            this.instructions[resultIndex] = factor1 * factor2;
+            var factor1 = GetFactor(modes[0], factorIndex1);
+            var factor2 = GetFactor(modes[1], factorIndex2);
+            var write = GetAddress(modes[2], resultIndex);
+            this.instructions[write] = factor1 * factor2;
 
             return 3;
         }
@@ -225,12 +285,12 @@ namespace advent_of_code_2019
         {
             var text = System.IO.File.ReadAllText(this.inputFilePath);
             var list = text.Split(",");
-            var intList = new int[list.Length];
-            for(int i = 0; i < intList.Length; i++)
+            var longList = new long[list.Length*100];
+            for(long i = 0; i < list.Length; i++)
             {
-                intList[i] = Int32.Parse(list[i]);
+                longList[i] = Int64.Parse(list[i]);
             }
-            this.instructions = intList;  
+            this.instructions = longList;  
         }
     }
 }
